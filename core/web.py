@@ -1,9 +1,10 @@
+import os
 import time
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.keys import Keys
 
 from secrets import login, password
@@ -27,6 +28,13 @@ class CCLoanWeb:
         if detach:
             self.options.add_experimental_option('detach', True)
 
+        self.prefs = {"download.default_directory": os.getcwd() + r"\pdfs",
+                      "download.prompt_for_download": False,
+                      "download.directory_upgrade": True,
+                      "plugins.always_open_pdf_externally": True}
+
+        self.options.add_experimental_option("prefs", self.prefs)
+
         self.driver = webdriver.Chrome(options=self.options)
         self.wait = WebDriverWait(self.driver, 10)
 
@@ -39,7 +47,7 @@ class CCLoanWeb:
         if maximized:
             self.driver.maximize_window()
 
-        self.wait.until(EC.presence_of_element_located((By.XPATH, self.ENTER_TO_XPATH)))
+        self.wait.until(ec.presence_of_element_located((By.XPATH, self.ENTER_TO_XPATH)))
 
         # Логинимся
         self.driver.find_element(By.XPATH, self.USERNAME_XPATH).send_keys(self.username)
@@ -48,11 +56,11 @@ class CCLoanWeb:
         self.driver.find_element(By.XPATH, self.ENTER_TO_XPATH).click()
 
     def find_client(self, iin):
-        self.wait.until(EC.presence_of_element_located((By.XPATH, self.CREDITS_XPATH)))
+        self.wait.until(ec.presence_of_element_located((By.XPATH, self.CREDITS_XPATH)))
 
         # Переходим на вкладку с кредитами
         self.driver.find_element(By.XPATH, self.CREDITS_XPATH).click()
-        self.wait.until(EC.presence_of_element_located((By.XPATH, self.IIN_FIELD_NAME)))
+        self.wait.until(ec.presence_of_element_located((By.XPATH, self.IIN_FIELD_NAME)))
 
         # Ищем кредит по ИИН
         iin_field = self.driver.find_element(By.XPATH, self.IIN_FIELD_NAME)
@@ -79,17 +87,50 @@ class CCLoanWeb:
         for doc in docs:
             if "Уведомление о просрочки" in doc.find_elements(By.TAG_NAME, "td")[4].text:
                 doc_url = doc.find_elements(By.TAG_NAME,
-                                            "td")[2].find_element(By.CLASS_NAME,
-                                                                  "ClientSiteDocumentDownload").get_attribute("href")
+                                            "td")[2].find_element(
+                    By.CLASS_NAME,
+                    "ClientSiteDocumentDownload").get_attribute("href")
+
                 docs_url.append(doc_url)
                 break
 
         return docs_url
 
+    def get_pdfs(self, iin, urls):
+        pdfs_path = os.getcwd() + fr"\pdfs"
+
+        if not os.path.exists(pdfs_path + fr"\{iin}"):
+            os.mkdir(pdfs_path + fr"\{iin}")
+
+        for i, url in enumerate(urls):
+            self.driver.get(url)
+
+            time.sleep(2)
+            file_downloaded = False
+
+            while not file_downloaded:
+                files = os.listdir(pdfs_path)
+
+                paths = [os.path.join(os.getcwd() + fr"\pdfs", basename) for basename in files]
+                latest_file = max(paths, key=os.path.getctime)
+
+                try:
+                    if i == 0:
+                        os.rename(latest_file, pdfs_path + fr"\{iin}\dogovor_{iin}.pdf")
+                    if i == 1:
+                        os.rename(latest_file, pdfs_path + fr"\{iin}\dolg_{iin}.pdf")
+                    if i == 2:
+                        os.rename(latest_file, pdfs_path + fr"\{iin}\uvedomlenie_{iin}.pdf")
+                except (PermissionError, FileNotFoundError):
+                    pass
+                else:
+                    file_downloaded = True
+
     def cc_loan_parse(self, iin):
+
         self.login()
         credit_url = self.find_client(iin)
 
         urls = self.parse_credit(credit_url)
 
-        print(urls)
+        self.get_pdfs(iin, urls)

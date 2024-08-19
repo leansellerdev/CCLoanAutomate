@@ -1,4 +1,4 @@
-from web import CCLoanWeb
+from core.web import CCLoanWeb
 
 if __name__ == '__main__':
     try:

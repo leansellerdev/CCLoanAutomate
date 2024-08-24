@@ -1,5 +1,8 @@
 import os
 import time
+from datetime import datetime
+
+from num2words import num2words
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,6 +11,9 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.keys import Keys
 
 from secrets import login, password
+
+from core.models.debt import Debt
+from core.utils.utils import format_number, format_date
 
 
 class CCLoanWeb:
@@ -22,7 +28,7 @@ class CCLoanWeb:
 
     CREDITS_TBODY_XPATH = '//*[@id="credit-grid"]/table/tbody'
 
-    def __init__(self, detach=False):
+    def __init__(self, debt: Debt,  detach=False):
         self.options = webdriver.ChromeOptions()
 
         if detach:
@@ -40,6 +46,8 @@ class CCLoanWeb:
 
         self.username = login
         self.password = password
+
+        self.debt = debt
 
     def login(self, maximized=True):
         self.driver.get(self.url)
@@ -75,7 +83,7 @@ class CCLoanWeb:
 
         return credit_url
 
-    def parse_credit(self, credit_url):
+    def parse_credit_urls(self, credit_url):
         self.driver.get(credit_url)
 
         docs = self.driver.find_elements(By.CLASS_NAME, "_document_url_div")[1:3]
@@ -95,6 +103,59 @@ class CCLoanWeb:
                 break
 
         return docs_url
+
+    def parse_credit_info(self):
+        fathers_name = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-7]
+        name = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-8]
+        surname = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-9]
+
+        if fathers_name.lower() != 'кредит':
+            self.debt.name = " ".join([surname, name, fathers_name])
+        if surname.isdigit():
+            self.debt.name = " ".join([name, fathers_name])
+
+        # Номер телефона
+        for elem in self.driver.find_elements(By.CLASS_NAME, "_document_url_div"):
+            if "Мобильный телефон клиента" in elem.text:
+                self.debt.phone_number = elem.text.split()[-1]
+
+            if "Кредит в днях" in elem.text:
+                self.debt.credit_duration = elem.text.split()[-1]
+
+        self.debt.credit_id = self.driver.find_element(By.XPATH, '//*[@id="yw1"]/tbody/tr[1]/td').text
+        self.debt.date_of_credit = self.driver.find_element(By.XPATH, '//*[@id="yw1"]/tbody/tr[14]/td').text
+
+        self.debt.date_of_credit = datetime.strptime(self.debt.date_of_credit, "%Y-%m-%d")
+        self.debt.date_of_credit = format_date(self.debt.date_of_credit)
+
+        tables = self.driver.find_elements(By.XPATH, '//*[@id="content"]/table/tbody')
+
+        for table in tables:
+            if table.find_element(By.TAG_NAME, "td").text == 'Разница в транзакциях':
+                rows = table.find_elements(By.TAG_NAME, "tr")
+
+                for row in rows:
+                    if row.find_elements(By.TAG_NAME, "td")[0].text.lower() == 'од':
+                        self.debt.summa = row.find_elements(By.TAG_NAME, "td")[1].text
+
+                    if row.find_elements(By.TAG_NAME, "td")[0].text.lower() == 'вознаграждение':
+                        self.debt.credit_reward = row.find_elements(By.TAG_NAME, "td")[1].text
+
+                    if row.find_elements(By.TAG_NAME, "td")[0].text.lower() == 'пеня за просрочку':
+                        self.debt.credit_fee = row.find_elements(By.TAG_NAME, "td")[1].text
+
+                    if row.find_elements(By.TAG_NAME, "td")[0].text.lower() == 'нотариальные услуги':
+                        self.debt.notarial_fee = row.find_elements(By.TAG_NAME, "td")[1].text
+
+        self.debt.final_summa = (int(self.debt.summa.replace(',', '').replace('.00', '')) +
+                                 int(self.debt.credit_reward.replace(',',
+                                                                     '').replace('.00', '')))
+
+        self.debt.summa = format_number(self.debt.summa)
+        self.debt.credit_reward = format_number(self.debt.credit_reward)
+        self.debt.credit_fee = format_number(self.debt.credit_fee)
+        self.debt.notarial_fee = format_number(self.debt.notarial_fee)
+        self.debt.final_summa = format_number(self.debt.final_summa)
 
     def get_pdfs(self, iin, urls):
         pdfs_path = os.getcwd() + fr"\pdfs"
@@ -128,9 +189,12 @@ class CCLoanWeb:
 
     def cc_loan_parse(self, iin):
 
+        self.debt.iin = iin
+
         self.login()
         credit_url = self.find_client(iin)
 
-        urls = self.parse_credit(credit_url)
+        urls = self.parse_credit_urls(credit_url)
 
+        self.parse_credit_info()
         self.get_pdfs(iin, urls)

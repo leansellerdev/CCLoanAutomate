@@ -1,18 +1,18 @@
 from docx import Document
 
 name = "Қадербек Назгүл Қадербек"
-phone_number = "887787982513"
-iin = "000526650927"
-summa = "40000 (сорок тысяч) тенге"
+phone_number = "887787982513"  # +
+iin = "000526650927"  # +
+summa = "40000 (сорок тысяч) тенге"  # +
 date_of_credit = "«20» января 2023"
-credit_id = "1371015"
+credit_id = "1371015"  # +
 credit_duration = "20"
-credit_reward = "4889 (четыре тысячи восемьсот восемьдесят девять) тенге"
+credit_reward = "4889 (четыре тысячи восемьсот восемьдесят девять) тенге"  # +
 today_date = "«18» августа 2024"
 final_summa = "44889 (сорок четыре тысячи восемьсот восемьдесят девять) тенге"
-credit_fee = "0 () тенге"
+credit_fee = "0 () тенге"  # +
 state_duty = "5000 (пять тысяч) тенге"
-notarial = "1337 (тысяча триста тридцать семь) тенге"
+notarial = "1337 (тысяча триста тридцать семь) тенге"  # +
 
 
 def fill_statement():
@@ -75,6 +75,3 @@ def fill_statement():
                 run.text = run.text.replace("notarial", notarial)
 
     template.save(f"templates/Исковое_Заявление_{name.replace(' ', '_')}.docx")
-
-
-fill_statement()

@@ -1,7 +1,6 @@
 from core.web import CCLoanWeb
 from core.models.debt import Debt
 
-# TODO: Заполнение шаблона иска с использованием полученных с сайта данных
 
 if __name__ == '__main__':
     try:

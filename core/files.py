@@ -7,7 +7,7 @@ from core.utils.utils import format_date
 
 
 def fill_statement(debt: Debt):
-    template = Document("templates/statement_template.docx")
+    template = Document("core/templates/statement_template.docx")
 
     for i, paragraph in enumerate(template.paragraphs):
         for run in paragraph.runs:
@@ -65,4 +65,4 @@ def fill_statement(debt: Debt):
                 run.text = run.text.replace("name", debt.name)
                 run.text = run.text.replace("notarial", debt.notarial_fee)
 
-    template.save(f"core/statements/Исковое_Заявление_{debt.name.replace(' ', '_')}.docx")
+    template.save(f"statements/Исковое_Заявление_{debt.name.replace(' ', '_')}.docx")

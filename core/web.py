@@ -1,6 +1,7 @@
 import os
 import time
 from datetime import datetime
+import logging
 
 from num2words import num2words
 
@@ -28,8 +29,14 @@ class CCLoanWeb:
 
     CREDITS_TBODY_XPATH = '//*[@id="credit-grid"]/table/tbody'
 
-    def __init__(self, debt: Debt,  detach=False):
+    def __init__(self, debt: Debt,  detach=False, headless=False):
         self.options = webdriver.ChromeOptions()
+
+        if headless:
+            self.options.add_argument("--headless")
+            self.options.add_argument("--disable-gpu")
+            self.options.add_argument("--no-sandbox")
+            self.options.add_argument("--disable-dev-shadow")
 
         if detach:
             self.options.add_experimental_option('detach', True)
@@ -149,7 +156,9 @@ class CCLoanWeb:
 
         self.debt.final_summa = (int(self.debt.summa.replace(',', '').replace('.00', '')) +
                                  int(self.debt.credit_reward.replace(',',
-                                                                     '').replace('.00', '')))
+                                                                     '').replace('.00', '')) +
+                                 int(self.debt.credit_fee.replace(',', '').replace('.00', ''))
+                                 )
 
         self.debt.summa = format_number(self.debt.summa)
         self.debt.credit_reward = format_number(self.debt.credit_reward)
@@ -176,25 +185,28 @@ class CCLoanWeb:
                 latest_file = max(paths, key=os.path.getctime)
 
                 try:
-                    if i == 0:
-                        os.rename(latest_file, pdfs_path + fr"\{iin}\dogovor_{iin}.pdf")
-                    if i == 1:
-                        os.rename(latest_file, pdfs_path + fr"\{iin}\dolg_{iin}.pdf")
-                    if i == 2:
-                        os.rename(latest_file, pdfs_path + fr"\{iin}\uvedomlenie_{iin}.pdf")
+                    try:
+                        if i == 0:
+                            os.rename(latest_file, pdfs_path + fr"\{iin}\dogovor_{iin}_{self.debt.credit_id}.pdf")
+                        if i == 1:
+                            os.rename(latest_file, pdfs_path + fr"\{iin}\dolg_{iin}_{self.debt.credit_id}.pdf")
+                        if i == 2:
+                            os.rename(latest_file, pdfs_path + fr"\{iin}\uvedomlenie_{iin}_{self.debt.credit_id}.pdf")
+                    except FileExistsError:
+                        logging.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")
                 except (PermissionError, FileNotFoundError):
                     pass
                 else:
                     file_downloaded = True
 
-    def cc_loan_parse(self, iin):
-
-        self.debt.iin = iin
-
-        self.login()
-        credit_url = self.find_client(iin)
-
-        urls = self.parse_credit_urls(credit_url)
-
-        self.parse_credit_info()
-        self.get_pdfs(iin, urls)
+    # def cc_loan_parse(self, iin):
+    #
+    #     self.debt.iin = iin
+    #
+    #     self.login()
+    #     credit_url = self.find_client(iin)
+    #
+    #     urls = self.parse_credit_urls(credit_url)
+    #
+    #     self.parse_credit_info()
+    #     self.get_pdfs(iin, urls)

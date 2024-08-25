@@ -7,7 +7,7 @@ from core.utils.utils import format_date
 
 
 def fill_statement(debt: Debt):
-    template = Document("core/templates/statement_template.docx")
+    template = Document("templates/statement_template.docx")
 
     for i, paragraph in enumerate(template.paragraphs):
         for run in paragraph.runs:

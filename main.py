@@ -21,11 +21,12 @@ def main():
         format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
                u'[%(asctime)s] - %(name)s - %(message)s',
         filename=logs_filename,
-        filemode='w'
+        filemode='w',
+        encoding='utf-8'
     )
 
     debt = Debt()
-    cc = CCLoanWeb(debt, headless=True)
+    cc = CCLoanWeb(debt, headless=False)
 
     iins = ["860825400664"]  # 860825400664
 
@@ -55,12 +56,13 @@ def main():
             logger.info(f"Все операции по займу #{debt.credit_id}, ИИН {debt.iin} проведены!")
     except Exception as err:
         message = f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} произошла ошибка!\n{err}"
-        send_logs(message=message)
+        logger.error(message)
+        # send_logs(message=message)
     else:
         logger.info("Отправляем логи!")
 
         message = f"Логи за {logs_filename.replace('.txt', '')}"
-        send_logs(message=message, log_file=logs_filename)
+        # send_logs(message=message, log_file=logs_filename)
 
         # is_removed = False
 

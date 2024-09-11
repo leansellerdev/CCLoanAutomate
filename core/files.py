@@ -5,6 +5,8 @@ from docx import Document
 from core.models.debt import Debt
 from core.utils.utils import format_date
 
+from settings import STATEMENTS_DIR
+
 
 def fill_statement(debt: Debt):
     template = Document("core/templates/statement_template.docx")
@@ -65,4 +67,4 @@ def fill_statement(debt: Debt):
                 run.text = run.text.replace("name", debt.name)
                 run.text = run.text.replace("notarial", debt.notarial_fee)
 
-    template.save(f"statements/Исковое_Заявление_{debt.name.replace(' ', '_')}.docx")
+    template.save(f"statements/Исковое_Заявление_{debt.iin}.docx")

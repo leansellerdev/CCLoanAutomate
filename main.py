@@ -64,17 +64,6 @@ def main():
         message = f"Логи за {logs_filename.replace('.txt', '')}"
         # send_logs(message=message, log_file=logs_filename)
 
-        # is_removed = False
-
-        # while not is_removed:
-        #     try:
-        #         if os.path.exists(logs_filename):
-        #             os.remove(logs_filename)
-        #     except PermissionError:
-        #         pass
-        #     else:
-        #         is_removed = True
-
 
 if __name__ == '__main__':
     try:

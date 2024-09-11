@@ -12,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.keys import Keys
 
 from secrets import login, password
+from settings import PDFS_DIR
 
 from core.models.debt import Debt
 from core.utils.utils import format_number, format_date
@@ -193,6 +194,7 @@ class CCLoanWeb:
                         if i == 2:
                             os.rename(latest_file, pdfs_path + fr"\{iin}\uvedomlenie_{iin}_{self.debt.credit_id}.pdf")
                     except FileExistsError:
+                        os.remove(latest_file)
                         logging.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")
                 except (PermissionError, FileNotFoundError):
                     pass

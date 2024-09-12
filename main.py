@@ -1,13 +1,11 @@
-import os
-
 import logging
 from datetime import datetime
 
 from core.web import CCLoanWeb
 from core.models.debt import Debt
 from core.files import fill_statement
-
-from core.utils.telegram import send_logs
+from core.drive import upload_files
+from core.utils.utils import delete_uploaded_files
 
 # 000526650927
 logger = logging.getLogger(__name__)
@@ -26,9 +24,9 @@ def main():
     )
 
     debt = Debt()
-    cc = CCLoanWeb(debt, headless=False)
+    cc = CCLoanWeb(debt, headless=True)
 
-    iins = ["860825400664"]  # 860825400664
+    iins = ["860825400664"]
 
     try:
         for iin in iins:
@@ -53,10 +51,14 @@ def main():
             logger.info(f"Заполняем исковое заявление для ИИН: {iin}, Имя клиента: {debt.name}")
             fill_statement(debt)
 
+            logger.info(f"Отправляем файлы на диск. {iin}")
+            upload_files(iin)
+            delete_uploaded_files(iin)
+
             logger.info(f"Все операции по займу #{debt.credit_id}, ИИН {debt.iin} проведены!")
     except Exception as err:
         message = f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} произошла ошибка!\n{err}"
-        logger.error(message)
+        logger.error(message, exc_info=True)
         # send_logs(message=message)
     else:
         logger.info("Отправляем логи!")

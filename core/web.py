@@ -3,8 +3,6 @@ import time
 from datetime import datetime
 import logging
 
-from num2words import num2words
-
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -168,10 +166,9 @@ class CCLoanWeb:
         self.debt.final_summa = format_number(self.debt.final_summa)
 
     def get_pdfs(self, iin, urls):
-        pdfs_path = os.getcwd() + fr"\pdfs"
 
-        if not os.path.exists(pdfs_path + fr"\{iin}"):
-            os.mkdir(pdfs_path + fr"\{iin}")
+        if not os.path.exists(PDFS_DIR / iin):
+            os.mkdir(PDFS_DIR / iin)
 
         for i, url in enumerate(urls):
             self.driver.get(url)
@@ -180,35 +177,24 @@ class CCLoanWeb:
             file_downloaded = False
 
             while not file_downloaded:
-                files = os.listdir(pdfs_path)
+                files = os.listdir(PDFS_DIR)
 
-                paths = [os.path.join(os.getcwd() + fr"\pdfs", basename) for basename in files]
+                paths = [os.path.join(PDFS_DIR, basename) for basename in files]
                 latest_file = max(paths, key=os.path.getctime)
+                # print(latest_file)
 
                 try:
                     try:
                         if i == 0:
-                            os.rename(latest_file, pdfs_path + fr"\{iin}\dogovor_{iin}_{self.debt.credit_id}.pdf")
+                            os.rename(latest_file, PDFS_DIR / f"{iin}/dogovor_{iin}_{self.debt.credit_id}.pdf")
                         if i == 1:
-                            os.rename(latest_file, pdfs_path + fr"\{iin}\dolg_{iin}_{self.debt.credit_id}.pdf")
+                            os.rename(latest_file, PDFS_DIR / f"{iin}/dolg_{iin}_{self.debt.credit_id}.pdf")
                         if i == 2:
-                            os.rename(latest_file, pdfs_path + fr"\{iin}\uvedomlenie_{iin}_{self.debt.credit_id}.pdf")
+                            os.rename(latest_file, PDFS_DIR / f"{iin}/uvedomlenie_{iin}_{self.debt.credit_id}.pdf")
                     except FileExistsError:
                         os.remove(latest_file)
                         logging.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")
-                except (PermissionError, FileNotFoundError):
-                    pass
+                except (PermissionError, FileNotFoundError) as error:
+                    print(error)
                 else:
                     file_downloaded = True
-
-    # def cc_loan_parse(self, iin):
-    #
-    #     self.debt.iin = iin
-    #
-    #     self.login()
-    #     credit_url = self.find_client(iin)
-    #
-    #     urls = self.parse_credit_urls(credit_url)
-    #
-    #     self.parse_credit_info()
-    #     self.get_pdfs(iin, urls)

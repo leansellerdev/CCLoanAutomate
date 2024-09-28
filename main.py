@@ -5,7 +5,8 @@ from core.web import CCLoanWeb
 from core.models.debt import Debt
 from core.files import fill_statement
 from core.drive import upload_files
-from core.utils.utils import delete_uploaded_files
+from core.utils.utils import delete_files, move_files
+from core.telegram import send_logs
 
 # 000526650927
 logger = logging.getLogger(__name__)
@@ -18,8 +19,8 @@ def main():
         level=logging.INFO,
         format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
                u'[%(asctime)s] - %(name)s - %(message)s',
-        filename=logs_filename,
-        filemode='w',
+        # filename=logs_filename,
+        # filemode='w',
         encoding='utf-8'
     )
 
@@ -51,20 +52,22 @@ def main():
             logger.info(f"Заполняем исковое заявление для ИИН: {iin}, Имя клиента: {debt.name}")
             fill_statement(debt)
 
-            logger.info(f"Отправляем файлы на диск. {iin}")
-            upload_files(iin)
-            delete_uploaded_files(iin)
+            logger.info(f"Перемещаем файлы в итоговую папку")
+            move_files(iin)
+
+            logger.info(f"Удаляем файлы")
+            delete_files(iin)
 
             logger.info(f"Все операции по займу #{debt.credit_id}, ИИН {debt.iin} проведены!")
     except Exception as err:
         message = f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} произошла ошибка!\n{err}"
         logger.error(message, exc_info=True)
-        # send_logs(message=message)
+        send_logs(message=message)
     else:
         logger.info("Отправляем логи!")
 
         message = f"Логи за {logs_filename.replace('.txt', '')}"
-        # send_logs(message=message, log_file=logs_filename)
+        send_logs(message=message, log_file=logs_filename)
 
 
 if __name__ == '__main__':

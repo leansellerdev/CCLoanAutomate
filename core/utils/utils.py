@@ -4,7 +4,7 @@ from datetime import datetime
 
 from num2words import num2words
 
-from settings import PDFS_DIR, STATEMENTS_DIR
+from settings import PDFS_DIR, STATEMENTS_DIR, CASE_DIR, TEMPLATES_DIR
 
 
 def format_number(num) -> str:
@@ -34,6 +34,19 @@ def format_date(date: datetime) -> str:
 
     return formatted_date
 
-def delete_uploaded_files(iin: str) -> None:
-    os.remove(STATEMENTS_DIR / f"Исковое_Заявление_{iin}.docx")
+def delete_files(iin: str) -> None:
     shutil.rmtree(PDFS_DIR / iin)
+
+
+def move_files(iin: str) -> None:
+    if not os.path.exists(CASE_DIR / iin):
+        os.mkdir(CASE_DIR / iin)
+
+    for file in os.listdir(PDFS_DIR / iin):
+        shutil.move(PDFS_DIR / iin / file, CASE_DIR / iin / file)
+
+    for file in os.listdir(STATEMENTS_DIR):
+        shutil.move(STATEMENTS_DIR / file, CASE_DIR / iin / file)
+
+    for file in os.listdir(TEMPLATES_DIR):
+        shutil.copy(TEMPLATES_DIR / file, CASE_DIR / iin / file)

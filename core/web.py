@@ -47,13 +47,18 @@ class CCLoanWeb:
 
         self.options.add_experimental_option("prefs", self.prefs)
 
-        self.driver = webdriver.Chrome(options=self.options)
+        self.driver = self.__init_driver()
         self.wait = WebDriverWait(self.driver, 10)
 
         self.username = login
         self.password = password
 
         self.debt = debt
+
+    def __init_driver(self) -> webdriver.Chrome:
+        driver = webdriver.Chrome(options=self.options)
+
+        return driver
 
     def login(self, maximized=True):
         self.driver.get(self.url)
@@ -93,6 +98,10 @@ class CCLoanWeb:
         self.driver.get(credit_url)
 
         docs = self.driver.find_elements(By.CLASS_NAME, "_document_url_div")[1:3]
+        if 'Доп. соглашение об изменениях условий договора' in docs[1].text:
+            docs.pop(1)
+            docs.append(self.driver.find_elements(By.CLASS_NAME, "_document_url_div")[3])
+
         docs_url = [doc.find_element(By.TAG_NAME, "a").get_attribute("href") for doc in docs]
 
         docs_table = self.driver.find_elements(By.CLASS_NAME, "items")[0]
@@ -110,10 +119,22 @@ class CCLoanWeb:
 
         return docs_url
 
-    def parse_credit_info(self):
-        fathers_name = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-7]
-        name = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-8]
-        surname = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-9]
+    def parse_credit_info(self) -> None:
+        document_urls_xpath = '//*[@id="content"]/div[1]'
+
+        name_block = self.driver.find_element(By.XPATH, document_urls_xpath)
+        names = name_block.find_elements(By.CLASS_NAME, '_document_url_div')[14].text.split()
+
+        if len(names) < 3:
+            names = name_block.find_elements(By.CLASS_NAME, '_document_url_div')[15].text.split()
+
+        fathers_name = names[2]
+        name = names[1]
+        surname = names[0]
+
+        # fathers_name = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-7]
+        # name = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-8]
+        # surname = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-9]
 
         if fathers_name.lower() != 'кредит':
             self.debt.name = " ".join([surname, name, fathers_name])
@@ -153,11 +174,10 @@ class CCLoanWeb:
                     if row.find_elements(By.TAG_NAME, "td")[0].text.lower() == 'нотариальные услуги':
                         self.debt.notarial_fee = row.find_elements(By.TAG_NAME, "td")[1].text
 
-        self.debt.final_summa = (int(self.debt.summa.replace(',', '').replace('.00', '')) +
-                                 int(self.debt.credit_reward.replace(',',
-                                                                     '').replace('.00', '')) +
-                                 int(self.debt.credit_fee.replace(',', '').replace('.00', ''))
-                                 )
+        self.debt.final_summa = int((float(self.debt.summa.replace(',', '')) +
+                                     float(self.debt.credit_reward.replace(',','')) +
+                                     float(self.debt.credit_fee.replace(',', ''))
+                                     ))
 
         self.debt.summa = format_number(self.debt.summa)
         self.debt.credit_reward = format_number(self.debt.credit_reward)

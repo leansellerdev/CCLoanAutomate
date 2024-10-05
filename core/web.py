@@ -17,7 +17,8 @@ from core.utils.utils import format_number, format_date
 
 
 class CCLoanWeb:
-    url = "https://ccloan.kz/administrator/index.php?r=User/Action/Login"
+    login_url = "https://ccloan.kz/administrator/index.php?r=User/Action/Login"
+    main_page_url = 'https://ccloan.kz/administrator/index.php?r=site/index'
 
     USERNAME_XPATH = '//*[@id="UserLoginForm_username"]'
     PASSWORD_XPATH = '//*[@id="UserLoginForm_password"]'
@@ -61,7 +62,7 @@ class CCLoanWeb:
         return driver
 
     def login(self, maximized=True):
-        self.driver.get(self.url)
+        self.driver.get(self.login_url)
 
         if maximized:
             self.driver.maximize_window()
@@ -73,6 +74,9 @@ class CCLoanWeb:
         self.driver.find_element(By.XPATH, self.PASSWORD_XPATH).send_keys(self.password)
 
         self.driver.find_element(By.XPATH, self.ENTER_TO_XPATH).click()
+
+    def main_page(self) -> None:
+        self.driver.get(self.main_page_url)
 
     def find_client(self, iin):
         self.wait.until(ec.presence_of_element_located((By.XPATH, self.CREDITS_XPATH)))
@@ -125,16 +129,14 @@ class CCLoanWeb:
         name_block = self.driver.find_element(By.XPATH, document_urls_xpath)
         names = name_block.find_elements(By.CLASS_NAME, '_document_url_div')[14].text.split()
 
-        if len(names) < 3:
+        if len(names) < 3 and names[-1].isdigit():
             names = name_block.find_elements(By.CLASS_NAME, '_document_url_div')[15].text.split()
-
-        fathers_name = names[2]
+        try:
+            fathers_name = names[2]
+        except IndexError:
+            fathers_name = ""
         name = names[1]
         surname = names[0]
-
-        # fathers_name = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-7]
-        # name = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-8]
-        # surname = self.driver.find_element(By.XPATH, '//*[@id="content"]/div[1]').text.split()[-9]
 
         if fathers_name.lower() != 'кредит':
             self.debt.name = " ".join([surname, name, fathers_name])
@@ -215,6 +217,6 @@ class CCLoanWeb:
                         os.remove(latest_file)
                         logging.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")
                 except (PermissionError, FileNotFoundError) as error:
-                    print(error)
+                    pass
                 else:
                     file_downloaded = True

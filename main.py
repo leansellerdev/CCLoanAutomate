@@ -1,5 +1,6 @@
 import logging
 import time
+import sys
 from datetime import datetime
 
 from core.web import CCLoanWeb
@@ -30,22 +31,25 @@ def main():
     debt = Debt()
     cc = CCLoanWeb(debt, headless=False)
 
-    iins = ["000115600906"]
+    iins = ["991106350337"]
 
     total_iins = db.count_iins()
 
     try:
-        for iin in iins:
-        # for _ in range(total_iins):
-            # iin_data = db.select_iin()
-            # iin = iin_data[1]
-            # iin_id = iin_data[0]
+        logger.info("Заходим на сайт")
+        cc.login()
+        # for iin in iins:
+
+        for _ in range(total_iins):
+            iin_data = db.select_iin()
+            iin = iin_data[1]
+            iin_id = iin_data[0]
 
             cc.debt.iin = iin
             cc.debt.state_duty = "5000 (пять тысяч) тенге"
 
-            logger.info("Заходим на сайт")
-            cc.login()
+            logger.info("Переходим на главную страницу")
+            cc.main_page()
 
             logger.info(f"Ищем клиента с ИИН: {iin}")
             credit_url = cc.find_client(iin)
@@ -69,12 +73,16 @@ def main():
             delete_files(iin)
 
             logger.info(f"Все операции по займу #{debt.credit_id}, ИИН {debt.iin} проведены!")
-            # db.update_iin_status(id=iin_id, status=1)
+            db.update_iin_status(id=iin_id, status=1)
+            time.sleep(5)
     except Exception as err:
         message = f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} произошла ошибка!\n{err}"
         logger.error(message, exc_info=True)
-        # send_logs(message=message)
+        send_logs(message=message)
+
+        sys.exit(1)
     else:
+        cc.driver.quit()
         logger.info("Отправляем логи!")
 
         message = f"Логи за {logs_filename.replace('.txt', '')}"

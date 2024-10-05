@@ -5,8 +5,6 @@ from docx import Document
 from core.models.debt import Debt
 from core.utils.utils import format_date
 
-from settings import STATEMENTS_DIR
-
 
 def fill_statement(debt: Debt):
     template = Document("core/templates/statement_template.docx")
@@ -16,7 +14,8 @@ def fill_statement(debt: Debt):
             run.font.highlight_color = None
 
             if i == 12:
-                run.text = run.text.replace("name", debt.name.capitalize())
+                capitalized_name = [name.capitalize() for name in debt.name.split()]
+                run.text = run.text.replace("name", ' '.join(capitalized_name))
 
             if i == 13:
                 run.text = run.text.replace("phonenumber", debt.phone_number)

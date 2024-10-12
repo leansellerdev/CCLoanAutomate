@@ -13,7 +13,7 @@ from secrets import login, password
 from settings import PDFS_DIR
 
 from core.models.debt import Debt
-from core.utils.utils import format_number, format_date
+from core.utils.utils import format_number, format_date, calculate_state_duty
 
 
 class CCLoanWeb:
@@ -146,7 +146,7 @@ class CCLoanWeb:
         # Номер телефона
         for elem in self.driver.find_elements(By.CLASS_NAME, "_document_url_div"):
             if "Мобильный телефон клиента" in elem.text:
-                self.debt.phone_number = elem.text.split()[-1]
+                self.debt.phone_number = elem.text.split()[-1][1:]
 
             if "Кредит в днях" in elem.text:
                 self.debt.credit_duration = elem.text.split()[-1]
@@ -180,7 +180,7 @@ class CCLoanWeb:
                                      float(self.debt.credit_reward.replace(',','')) +
                                      float(self.debt.credit_fee.replace(',', ''))
                                      ))
-
+        self.debt.state_duty = format_number(calculate_state_duty(amount=self.debt.final_summa))
         self.debt.summa = format_number(self.debt.summa)
         self.debt.credit_reward = format_number(self.debt.credit_reward)
         self.debt.credit_fee = format_number(self.debt.credit_fee)

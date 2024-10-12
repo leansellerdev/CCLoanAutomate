@@ -10,7 +10,6 @@ from core.utils.utils import delete_files, move_files
 from core.telegram import send_logs
 from core.database import SQLiteDatabase
 
-# 000526650927
 logger = logging.getLogger(__name__)
 
 db = SQLiteDatabase("db.sqlite3")
@@ -23,22 +22,17 @@ def main():
         level=logging.INFO,
         format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
                u'[%(asctime)s] - %(name)s - %(message)s',
-        # filename=logs_filename,
-        # filemode='w',
         encoding='utf-8'
     )
 
     debt = Debt()
     cc = CCLoanWeb(debt, headless=False)
 
-    iins = ["991106350337"]
-
     total_iins = db.count_iins()
 
     try:
         logger.info("Заходим на сайт")
         cc.login()
-        # for iin in iins:
 
         for _ in range(total_iins):
             iin_data = db.select_iin()
@@ -46,7 +40,6 @@ def main():
             iin_id = iin_data[0]
 
             cc.debt.iin = iin
-            cc.debt.state_duty = "5000 (пять тысяч) тенге"
 
             logger.info("Переходим на главную страницу")
             cc.main_page()
@@ -76,17 +69,14 @@ def main():
             db.update_iin_status(id=iin_id, status=1)
             time.sleep(5)
     except Exception as err:
-        message = f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} произошла ошибка!\n{err}"
+        message = (f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} "
+                   f"произошла ошибка!\n{err.with_traceback(err.__traceback__)}")
         logger.error(message, exc_info=True)
         send_logs(message=message)
 
         sys.exit(1)
     else:
         cc.driver.quit()
-        logger.info("Отправляем логи!")
-
-        message = f"Логи за {logs_filename.replace('.txt', '')}"
-        # send_logs(message=message, log_file=logs_filename)
 
 
 if __name__ == '__main__':

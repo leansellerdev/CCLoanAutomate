@@ -13,6 +13,9 @@ def format_number(num) -> str:
 
     return f"{text} ({formatted_text}) тенге"
 
+def calculate_state_duty(amount: int) -> int:
+    amount *= 0.03
+    return int(amount)
 
 def format_date(date: datetime) -> str:
     months = {

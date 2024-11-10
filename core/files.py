@@ -1,9 +1,12 @@
+import json
 from datetime import datetime
 
 from docx import Document
+from requests import options
 
 from core.models.debt import Debt
 from core.utils.utils import format_date
+from settings import CASE_DIR
 
 
 def fill_statement(debt: Debt):
@@ -67,3 +70,6 @@ def fill_statement(debt: Debt):
                 run.text = run.text.replace("notarial", debt.notarial_fee)
 
     template.save(f"statements/Исковое_Заявление_{debt.iin}.docx")
+
+    with open(f"statements/statement_sum.json", 'w') as outfile:
+        outfile.write(json.dumps({"sum": debt.final_summa}))

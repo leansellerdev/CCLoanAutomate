@@ -5,10 +5,11 @@ from docx import Document
 
 from core.models.debt import Debt
 from core.utils.utils import format_date
+from settings import TEMPLATES_DIR
 
 
 def fill_statement(debt: Debt):
-    template = Document(r"C:\Users\96514502\PycharmProjects\CCLoanAutomate\core\templates\statement_template_new.docx")
+    template = Document(TEMPLATES_DIR / 'statement_template.docx')
 
     for i, paragraph in enumerate(template.paragraphs):
         for run in paragraph.runs:

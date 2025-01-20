@@ -13,7 +13,7 @@ from secrets import login, password
 from settings import PDFS_DIR
 
 from core.models.debt import Debt
-from core.utils.utils import format_number, format_date, calculate_state_duty
+from core.utils.utils import format_number, format_date, calculate_state_duty, calculate_service
 
 
 class CCLoanWeb:
@@ -180,7 +180,13 @@ class CCLoanWeb:
                                      float(self.debt.credit_reward.replace(',','')) +
                                      float(self.debt.credit_fee.replace(',', ''))
                                      ))
-        self.debt.state_duty = format_number(calculate_state_duty(amount=self.debt.final_summa))
+        self.debt.service = format_number(calculate_service(amount=self.debt.final_summa, notarial=int(
+                                                                      float(self.debt.notarial_fee.replace(',', '')
+                                                                            ))))
+        self.debt.state_duty = format_number(calculate_state_duty(amount=self.debt.final_summa,
+                                                                  notarial=int(
+                                                                      float(self.debt.notarial_fee.replace(',', '')
+                                                                            ))))
         self.debt.summa = format_number(self.debt.summa)
         self.debt.credit_reward = format_number(self.debt.credit_reward)
         self.debt.credit_fee = format_number(self.debt.credit_fee)

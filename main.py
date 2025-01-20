@@ -16,7 +16,7 @@ db = SQLiteDatabase("db.sqlite3")
 
 
 def main():
-    logs_filename = datetime.now().strftime("%d-%m-%Y_%H-%M-%S.txt")
+    # logs_filename = datetime.now().strftime("%d-%m-%Y_%H-%M-%S.txt")
 
     logging.basicConfig(
         level=logging.INFO,

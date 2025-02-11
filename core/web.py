@@ -13,7 +13,7 @@ from secrets import login, password
 from settings import PDFS_DIR
 
 from core.models.debt import Debt
-from core.utils.utils import format_number, format_date, calculate_state_duty, calculate_service
+from core.utils.utils import calculate_state_duty, calculate_service
 
 
 class CCLoanWeb:
@@ -155,7 +155,6 @@ class CCLoanWeb:
         self.debt.date_of_credit = self.driver.find_element(By.XPATH, '//*[@id="yw1"]/tbody/tr[14]/td').text
 
         self.debt.date_of_credit = datetime.strptime(self.debt.date_of_credit, "%Y-%m-%d")
-        self.debt.date_of_credit = format_date(self.debt.date_of_credit)
 
         tables = self.driver.find_elements(By.XPATH, '//*[@id="content"]/table/tbody')
 
@@ -176,22 +175,22 @@ class CCLoanWeb:
                     if row.find_elements(By.TAG_NAME, "td")[0].text.lower() == 'нотариальные услуги':
                         self.debt.notarial_fee = row.find_elements(By.TAG_NAME, "td")[1].text
 
+                    if row.find_elements(By.TAG_NAME, "td")[0].text.lower() == 'одноразовы штраф за просрочку':
+                        self.debt.penalty = row.find_elements(By.TAG_NAME, "td")[1].text
+
+
         self.debt.final_summa = int((float(self.debt.summa.replace(',', '')) +
                                      float(self.debt.credit_reward.replace(',','')) +
-                                     float(self.debt.credit_fee.replace(',', ''))
+                                     float(self.debt.credit_fee.replace(',', '')) +
+                                     float(self.debt.penalty.replace(',', ''))
                                      ))
-        self.debt.service = format_number(calculate_service(amount=self.debt.final_summa, notarial=int(
+        self.debt.service = calculate_service(amount=self.debt.final_summa, notarial=int(
                                                                       float(self.debt.notarial_fee.replace(',', '')
-                                                                            ))))
-        self.debt.state_duty = format_number(calculate_state_duty(amount=self.debt.final_summa,
+                                                                            )))
+        self.debt.state_duty = calculate_state_duty(amount=self.debt.final_summa,
                                                                   notarial=int(
                                                                       float(self.debt.notarial_fee.replace(',', '')
-                                                                            ))))
-        self.debt.summa = format_number(self.debt.summa)
-        self.debt.credit_reward = format_number(self.debt.credit_reward)
-        self.debt.credit_fee = format_number(self.debt.credit_fee)
-        self.debt.notarial_fee = format_number(self.debt.notarial_fee)
-        self.debt.final_summa = format_number(self.debt.final_summa)
+                                                                            )))
 
     def get_pdfs(self, iin, urls):
 
@@ -209,7 +208,6 @@ class CCLoanWeb:
 
                 paths = [os.path.join(PDFS_DIR, basename) for basename in files]
                 latest_file = max(paths, key=os.path.getctime)
-                # print(latest_file)
 
                 try:
                     try:
@@ -222,7 +220,7 @@ class CCLoanWeb:
                     except FileExistsError:
                         os.remove(latest_file)
                         logging.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")
-                except (PermissionError, FileNotFoundError) as error:
+                except (PermissionError, FileNotFoundError):
                     pass
                 else:
                     file_downloaded = True

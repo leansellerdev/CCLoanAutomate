@@ -11,6 +11,11 @@ from settings import TEMPLATES_DIR
 def fill_statement(debt: Debt):
     template = Document(TEMPLATES_DIR / 'statement_template.docx')
 
+    with open(f"statements/statement_info.json", 'w', encoding='utf-8') as outfile:
+        outfile.write(json.dumps(debt.dump(), indent=4, ensure_ascii=False, default=str))
+
+    debt.format_all()
+
     for i, paragraph in enumerate(template.paragraphs):
         for run in paragraph.runs:
             run.font.highlight_color = None
@@ -72,9 +77,6 @@ def fill_statement(debt: Debt):
                 run.text = run.text.replace("service", debt.service)
 
     template.save(f"statements/Исковое_Заявление_{debt.iin}.docx")
-
-    with open(f"statements/statement_sum.json", 'w') as outfile:
-        outfile.write(json.dumps({"sum": debt.final_summa}))
 
 
 if __name__ == '__main__':

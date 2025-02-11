@@ -1,7 +1,7 @@
-import logging
 import time
 import sys
-from datetime import datetime
+
+from loguru import logger
 
 from core.web import CCLoanWeb
 from core.models.debt import Debt
@@ -10,20 +10,11 @@ from core.utils.utils import delete_files, move_files
 from core.telegram import send_logs
 from core.database import SQLiteDatabase
 
-logger = logging.getLogger(__name__)
 
 db = SQLiteDatabase("db.sqlite3")
 
 
 def main():
-    # logs_filename = datetime.now().strftime("%d-%m-%Y_%H-%M-%S.txt")
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
-               u'[%(asctime)s] - %(name)s - %(message)s',
-        encoding='utf-8'
-    )
 
     debt = Debt()
     cc = CCLoanWeb(debt, headless=False)
@@ -71,7 +62,7 @@ def main():
     except Exception as err:
         message = (f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} "
                    f"произошла ошибка!\n{err.with_traceback(err.__traceback__)}")
-        logger.error(message, exc_info=True)
+        logger.error(str(err), exc_info=True)
         send_logs(message=message)
 
         sys.exit(1)

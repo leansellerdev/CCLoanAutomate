@@ -1,7 +1,7 @@
 import os
 import time
 from datetime import datetime
-import logging
+from loguru import logger
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -138,6 +138,9 @@ class CCLoanWeb:
         name = names[1]
         surname = names[0]
 
+        if fathers_name == 'нет':
+            fathers_name = ""
+
         if fathers_name.lower() != 'кредит':
             self.debt.name = " ".join([surname, name, fathers_name])
         if surname.isdigit():
@@ -219,7 +222,7 @@ class CCLoanWeb:
                             os.rename(latest_file, PDFS_DIR / f"{iin}/uvedomlenie_{iin}_{self.debt.credit_id}.pdf")
                     except FileExistsError:
                         os.remove(latest_file)
-                        logging.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")
+                        logger.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")
                 except (PermissionError, FileNotFoundError):
                     pass
                 else:

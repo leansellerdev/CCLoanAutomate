@@ -1,43 +1,32 @@
 import requests
-from secrets import tg_bot_token
+
+from settings import LOG_FILE_PATH, TG_BOT_TOKEN, PROJECT_NAME
+
+LOGS_CHAT_ID = '-4751461230'
 
 
 def get_uodates():
-    token = tg_bot_token
-    url = f"https://api.telegram.org/bot{token}/getUpdates"
+    url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/getUpdates"
 
     response = requests.get(url)
     return response.json()
 
 
-def send_logs(message, log_file=None):
-    token = tg_bot_token
-    chat_ids = ["-4553001971", "-2227234613"]
+def send_logs(log_file: str = LOG_FILE_PATH, message: str = 'log'):
+    url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendDocument"
 
-    responses = []
+    message = f'Процесс: {PROJECT_NAME}\n' + message
 
-    for chat_id in chat_ids:
-        if log_file:
-            url = f"https://api.telegram.org/bot{token}/sendDocument"
-            with open(log_file, "rb") as sendfile:
-                response = requests.post(
-                    url,
-                    data={
-                        "chat_id": chat_id,
-                        "caption": message
-                    },
-                    files={"document": sendfile}
-                )
-        else:
-            url = f"https://api.telegram.org/bot{token}/sendMessage"
-            response = requests.get(
-                url,
-                params={'chat_id': chat_id, 'text': message}
-            )
+    with open(log_file, 'rb') as send_file:
+        response = requests.post(
+            url,
+            data={
+                'chat_id': LOGS_CHAT_ID,
+                'caption': message,
+            },
+            files={
+                'document': send_file,
+            }
+        )
 
-        if response.status_code != 200:
-            return f"Ошибка при отправке логов: {response.text}"
-
-        responses.append({chat_id: response.text})
-
-    return response.text
+    return response

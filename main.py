@@ -9,10 +9,8 @@ from core.files import fill_statement
 from core.utils.utils import delete_files, move_files
 from core.telegram import send_logs
 from core.database import SQLiteDatabase
-from settings import LOG_FILE_PATH
 
 
-logger.add(LOG_FILE_PATH)
 db = SQLiteDatabase("db.sqlite3")
 
 
@@ -40,11 +38,17 @@ def main():
             logger.info(f"Ищем клиента с ИИН: {iin}")
             credit_url = cc.find_client(iin)
 
+            if credit_url is None:
+                continue
+
             logger.info("Берем ссылки на документы")
             urls = cc.parse_credit_urls(credit_url)
 
             logger.info("Собираем информацию по кредиту")
-            cc.parse_credit_info()
+            try:
+                cc.parse_credit_info()
+            except IndexError:
+                continue
 
             logger.info("Скачиваем документы по кредиту")
             cc.get_pdfs(iin, urls)

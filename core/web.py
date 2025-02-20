@@ -48,6 +48,9 @@ class CCLoanWeb:
 
         self.options.add_experimental_option("prefs", self.prefs)
 
+        user_data_dir = r'C:\Users\96514502\AppData\Local\Google\Chrome\Profile 1'
+        self.options.add_argument(f"--user-data-dir={user_data_dir}")
+
         self.driver = self.__init_driver()
         self.wait = WebDriverWait(self.driver, 10)
 
@@ -93,6 +96,10 @@ class CCLoanWeb:
         time.sleep(5)
 
         credit = self.driver.find_element(By.XPATH, self.CREDITS_TBODY_XPATH).find_element(By.TAG_NAME, "tr")
+        credit_status = credit.find_elements(By.TAG_NAME, "td")[11].text
+        if credit_status != 'Отмена исп. листа/надписи':
+            return
+
         credit_id = credit.find_elements(By.TAG_NAME, "td")[1].text
         credit_url = f"https://ccloan.kz/administrator/index.php?r=credit/view&id={credit_id}"
 

@@ -48,9 +48,6 @@ class CCLoanWeb:
 
         self.options.add_experimental_option("prefs", self.prefs)
 
-        user_data_dir = r'C:\Users\96514502\AppData\Local\Google\Chrome\Profile 1'
-        self.options.add_argument(f"--user-data-dir={user_data_dir}")
-
         self.driver = self.__init_driver()
         self.wait = WebDriverWait(self.driver, 10)
 
@@ -222,11 +219,17 @@ class CCLoanWeb:
                 try:
                     try:
                         if i == 0:
-                            os.rename(latest_file, PDFS_DIR / f"{iin}/dogovor_{iin}_{self.debt.credit_id}.pdf")
+                            os.rename(
+                                latest_file,
+                                PDFS_DIR / f"{iin}/Договор_о_предоставлении_микрокредита_{iin}_{self.debt.credit_id}.pdf"
+                            )
                         if i == 1:
-                            os.rename(latest_file, PDFS_DIR / f"{iin}/dolg_{iin}_{self.debt.credit_id}.pdf")
+                            os.rename(
+                                latest_file,
+                                PDFS_DIR / f"{iin}/Рассчет_задолженности_{iin}_{self.debt.credit_id}.pdf"
+                            )
                         if i == 2:
-                            os.rename(latest_file, PDFS_DIR / f"{iin}/uvedomlenie_{iin}_{self.debt.credit_id}.pdf")
+                            os.rename(latest_file, PDFS_DIR / f"{iin}/Досудебная_претензия_{iin}_{self.debt.credit_id}.pdf")
                     except FileExistsError:
                         os.remove(latest_file)
                         logger.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")

@@ -1,7 +1,12 @@
 import time
 import sys
+import traceback
+from datetime import datetime, timedelta
 
 from loguru import logger
+
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from core.web import CCLoanWeb
 from core.models.debt import Debt
@@ -19,13 +24,13 @@ def main():
     debt = Debt()
     cc = CCLoanWeb(debt, headless=False)
 
-    total_iins = db.count_iins()
+    # total_iins = db.count_iins()
 
     try:
         logger.info("Заходим на сайт")
         cc.login()
 
-        for _ in range(total_iins):
+        for _ in range(50):
             iin_data = db.select_iin()
             iin = iin_data[1]
             iin_id = iin_data[0]
@@ -67,8 +72,8 @@ def main():
             time.sleep(5)
     except Exception as err:
         message = (f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} "
-                   f"произошла ошибка!\n{err.with_traceback(err.__traceback__)}")
-        logger.error(str(err), exc_info=True)
+                   f"произошла ошибка!\n{traceback.format_exc()}")
+        logger.error(err)
         send_logs(message=message)
 
         sys.exit(1)
@@ -76,8 +81,14 @@ def main():
         cc.driver.quit()
 
 
+trigger = CronTrigger(hour=9, start_date=datetime.now() + timedelta(seconds=5))
+scheduler = BlockingScheduler(logger=logger, trigger=trigger)
+
+
 if __name__ == '__main__':
     try:
-        main()
+        # main()
+        scheduler.add_job(func=main, id='main')
+        scheduler.start()
     except (KeyboardInterrupt, SystemExit) as error:
         logger.error(error)

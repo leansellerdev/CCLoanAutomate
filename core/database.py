@@ -4,7 +4,7 @@ import sqlite3
 class SQLiteDatabase:
     def __init__(self, file_name: str) -> None:
         self.file_name = file_name
-        self.conn = sqlite3.connect(self.file_name)
+        self.conn = sqlite3.connect(self.file_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
 
     def add_iin(self, iin: str, status: int) -> None:
@@ -20,7 +20,9 @@ class SQLiteDatabase:
     def select_iin(self) -> tuple:
         self.cursor.execute(
             """
-            SELECT id, iin from iins order by random() asc limit 1;
+            SELECT id, iin from iins 
+            where status != 1 
+            order by id asc limit 1;
             """
         )
 

@@ -41,19 +41,19 @@ def format_date(date: datetime) -> str:
 
     return formatted_date
 
-def delete_files(iin: str) -> None:
-    shutil.rmtree(PDFS_DIR / iin)
+def delete_files(folder_name: str) -> None:
+    shutil.rmtree(PDFS_DIR / folder_name)
 
 
-def move_files(iin: str) -> None:
-    if not os.path.exists(CASE_DIR / iin):
-        os.mkdir(CASE_DIR / iin)
+def move_files(folder_name: str) -> None:
+    if not os.path.exists(CASE_DIR / folder_name):
+        os.mkdir(CASE_DIR / folder_name)
 
-    for file in os.listdir(PDFS_DIR / iin):
-        shutil.move(PDFS_DIR / iin / file, CASE_DIR / iin / file)
+    for file in os.listdir(PDFS_DIR / folder_name):
+        shutil.move(PDFS_DIR / folder_name / file, CASE_DIR / folder_name / file)
 
     for file in os.listdir(STATEMENTS_DIR):
-        shutil.move(STATEMENTS_DIR / file, CASE_DIR / iin / file)
+        shutil.move(STATEMENTS_DIR / file, CASE_DIR / folder_name / file)
 
     for file in os.listdir(TEMPLATES_DIR):
-        shutil.copy(TEMPLATES_DIR / file, CASE_DIR / iin / file)
+        shutil.copy(TEMPLATES_DIR / file, CASE_DIR / folder_name / file)

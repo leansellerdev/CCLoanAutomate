@@ -100,6 +100,8 @@ class CCLoanWeb:
         credit_id = credit.find_elements(By.TAG_NAME, "td")[1].text
         credit_url = f"https://ccloan.kz/administrator/index.php?r=credit/view&id={credit_id}"
 
+        self.debt.paybox = credit.find_elements(By.TAG_NAME, "td")[3].text
+
         return credit_url
 
     def parse_credit_urls(self, credit_url):
@@ -200,9 +202,10 @@ class CCLoanWeb:
                                                                             )))
 
     def get_pdfs(self, iin, urls):
+        folder_name = f'{iin}_{self.debt.paybox}'
 
-        if not os.path.exists(PDFS_DIR / iin):
-            os.mkdir(PDFS_DIR / iin)
+        if not os.path.exists(PDFS_DIR / folder_name):
+            os.mkdir(PDFS_DIR / folder_name)
 
         for i, url in enumerate(urls):
             self.driver.get(url)
@@ -221,15 +224,15 @@ class CCLoanWeb:
                         if i == 0:
                             os.rename(
                                 latest_file,
-                                PDFS_DIR / f"{iin}/Договор_о_предоставлении_микрокредита_{iin}_{self.debt.credit_id}.pdf"
+                                PDFS_DIR / f"{folder_name}/Договор_о_предоставлении_микрокредита_{iin}_{self.debt.credit_id}.pdf"
                             )
                         if i == 1:
                             os.rename(
                                 latest_file,
-                                PDFS_DIR / f"{iin}/Рассчет_задолженности_{iin}_{self.debt.credit_id}.pdf"
+                                PDFS_DIR / f"{folder_name}/Рассчет_задолженности_{iin}_{self.debt.credit_id}.pdf"
                             )
                         if i == 2:
-                            os.rename(latest_file, PDFS_DIR / f"{iin}/Досудебная_претензия_{iin}_{self.debt.credit_id}.pdf")
+                            os.rename(latest_file, PDFS_DIR / f"{folder_name}/Досудебная_претензия_{iin}_{self.debt.credit_id}.pdf")
                     except FileExistsError:
                         os.remove(latest_file)
                         logger.info(f"Файлы по займу #{self.debt.credit_id} уже созданы!")

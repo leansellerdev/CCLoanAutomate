@@ -61,34 +61,35 @@ def main():
             logger.info(f"Заполняем исковое заявление для ИИН: {iin}, Имя клиента: {debt.name}")
             fill_statement(debt)
 
+            folder_name = f'{iin}_{debt.paybox}'
+
             logger.info(f"Перемещаем файлы в итоговую папку")
-            move_files(iin)
+            move_files(folder_name)
 
             logger.info(f"Удаляем файлы")
-            delete_files(iin)
+            delete_files(folder_name)
 
             logger.info(f"Все операции по займу #{debt.credit_id}, ИИН {debt.iin} проведены!")
             db.update_iin_status(id=iin_id, status=1)
             time.sleep(5)
-    except Exception as err:
+    except Exception:
         message = (f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} "
                    f"произошла ошибка!\n{traceback.format_exc()}")
-        logger.error(err)
+        logger.error(traceback.format_exc())
         send_logs(message=message)
-
-        sys.exit(1)
+        return
     else:
         cc.driver.quit()
 
 
 trigger = CronTrigger(hour=9, start_date=datetime.now() + timedelta(seconds=5))
-scheduler = BlockingScheduler(logger=logger, trigger=trigger)
+scheduler = BlockingScheduler(logger=logger)
 
 
 if __name__ == '__main__':
     try:
         # main()
-        scheduler.add_job(func=main, id='main')
+        scheduler.add_job(func=main, id='main', trigger=trigger)
         scheduler.start()
     except (KeyboardInterrupt, SystemExit) as error:
         logger.error(error)

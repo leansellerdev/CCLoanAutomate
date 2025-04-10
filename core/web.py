@@ -193,6 +193,12 @@ class CCLoanWeb:
                                      float(self.debt.credit_fee.replace(',', '')) +
                                      float(self.debt.penalty.replace(',', ''))
                                      ))
+        self.debt.notarial_plus_mainsumma = int((float(self.debt.summa.replace(',', '')) +
+                                     float(self.debt.credit_reward.replace(',','')) +
+                                     float(self.debt.credit_fee.replace(',', '')) +
+                                     float(self.debt.penalty.replace(',', '')) +
+                                     float(self.debt.notarial_fee.replace(',', ''))
+                                     ))
         self.debt.service = calculate_service(amount=self.debt.final_summa, notarial=int(
                                                                       float(self.debt.notarial_fee.replace(',', '')
                                                                             )))

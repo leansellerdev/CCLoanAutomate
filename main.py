@@ -22,15 +22,15 @@ db = SQLiteDatabase("db.sqlite3")
 def main():
 
     debt = Debt()
-    cc = CCLoanWeb(debt, headless=False)
+    cc = CCLoanWeb(debt, headless=True)
 
-    # total_iins = db.count_iins()
+    counter = 30
 
     try:
         logger.info("Заходим на сайт")
         cc.login()
 
-        for _ in range(50):
+        while counter > 0:
             iin_data = db.select_iin()
             iin = iin_data[1]
             iin_id = iin_data[0]
@@ -44,6 +44,7 @@ def main():
             credit_url = cc.find_client(iin)
 
             if credit_url is None:
+                db.update_iin_status(id=iin_id, status=1)
                 continue
 
             logger.info("Берем ссылки на документы")
@@ -53,6 +54,7 @@ def main():
             try:
                 cc.parse_credit_info()
             except IndexError:
+                db.update_iin_status(id=iin_id, status=1)
                 continue
 
             logger.info("Скачиваем документы по кредиту")
@@ -72,6 +74,8 @@ def main():
             logger.info(f"Все операции по займу #{debt.credit_id}, ИИН {debt.iin} проведены!")
             db.update_iin_status(id=iin_id, status=1)
             time.sleep(5)
+
+            counter -= 1
     except Exception:
         message = (f"При попытке формирования иска для {debt.credit_id}, ИИН: {debt.iin} "
                    f"произошла ошибка!\n{traceback.format_exc()}")
@@ -81,15 +85,14 @@ def main():
     else:
         cc.driver.quit()
 
-
-trigger = CronTrigger(hour=9, start_date=datetime.now() + timedelta(seconds=5))
+trigger = CronTrigger(hour=8 ,start_date=datetime.now() + timedelta(seconds=5))
 scheduler = BlockingScheduler(logger=logger)
 
 
 if __name__ == '__main__':
     try:
-        # main()
-        scheduler.add_job(func=main, id='main', trigger=trigger)
-        scheduler.start()
+        main()
+        # scheduler.add_job(func=main, id='main', trigger=trigger)
+        # scheduler.start()
     except (KeyboardInterrupt, SystemExit) as error:
         logger.error(error)

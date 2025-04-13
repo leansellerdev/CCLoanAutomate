@@ -206,6 +206,8 @@ class CCLoanWeb:
                                                                   notarial=int(
                                                                       float(self.debt.notarial_fee.replace(',', '')
                                                                             )))
+        self.debt.credit_fee = int(float(self.debt.credit_fee.replace(',', ''))
+                                         + float(self.debt.penalty.replace(',', '')))
 
     def get_pdfs(self, iin, urls):
         folder_name = f'{iin}_{self.debt.paybox}'

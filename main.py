@@ -1,5 +1,4 @@
 import time
-import sys
 import traceback
 from datetime import datetime, timedelta
 
@@ -85,14 +84,14 @@ def main():
     else:
         cc.driver.quit()
 
-trigger = CronTrigger(hour=8 ,start_date=datetime.now() + timedelta(seconds=5))
-scheduler = BlockingScheduler(logger=logger)
+trigger = CronTrigger(hour=9, minute=50 ,start_date=datetime.now() + timedelta(seconds=5))
+scheduler = BlockingScheduler()
 
 
 if __name__ == '__main__':
     try:
-        main()
-        # scheduler.add_job(func=main, id='main', trigger=trigger)
-        # scheduler.start()
+        # main()
+        scheduler.add_job(func=main, id='main', trigger=trigger)
+        scheduler.start()
     except (KeyboardInterrupt, SystemExit) as error:
         logger.error(error)

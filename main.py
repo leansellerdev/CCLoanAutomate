@@ -23,7 +23,7 @@ def main():
     debt = Debt()
     cc = CCLoanWeb(debt, headless=True)
 
-    counter = 30
+    counter = 90
 
     try:
         logger.info("Заходим на сайт")

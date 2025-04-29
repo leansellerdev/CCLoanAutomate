@@ -10,7 +10,7 @@ LOG_FILE_PATH = BASE_DIR / 'app.log'
 
 TG_BOT_TOKEN = '7471120443:AAG-JD6F77s_ENR0TztsBpuDhYsPqNInDMU'
 
-CASE_DIR = Path(r"N:\Delo\Неподанные")
+CASE_DIR = Path(r"N:\Delo\Без платежки")
 
 DB_FILE = BASE_DIR / "db.sqlite3"
 

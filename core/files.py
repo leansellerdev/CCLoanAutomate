@@ -31,7 +31,7 @@ def fill_statement(debt: Debt):
                 run.text = run.text.replace("iin", debt.iin)
 
             if i == 21:
-                run.text = run.text.replace("notarial_plus_mainsumma", debt.notarial_plus_mainsumma)
+                run.text = run.text.replace("notarialplusmainsumma", debt.notarial_plus_mainsumma)
 
             if i == 27:
                 run.text = run.text.replace("dateofcredit", debt.date_of_credit)

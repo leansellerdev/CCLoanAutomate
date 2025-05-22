@@ -21,7 +21,7 @@ db = SQLiteDatabase("db.sqlite3")
 def main():
 
     debt = Debt()
-    cc = CCLoanWeb(debt, headless=True)
+    cc = CCLoanWeb(debt, headless=False)
 
     counter = 40
 
@@ -52,7 +52,7 @@ def main():
             logger.info("Собираем информацию по кредиту")
             try:
                 cc.parse_credit_info()
-            except IndexError:
+            except (IndexError, AttributeError):
                 db.update_iin_status(id=iin_id, status=1)
                 continue
 
@@ -90,8 +90,8 @@ scheduler = BlockingScheduler()
 
 if __name__ == '__main__':
     try:
-        # main()
-        scheduler.add_job(func=main, id='main', trigger=trigger)
-        scheduler.start()
+        main()
+        # scheduler.add_job(func=main, id='main', trigger=trigger)
+        # scheduler.start()
     except (KeyboardInterrupt, SystemExit) as error:
         logger.error(error)

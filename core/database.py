@@ -9,22 +9,32 @@ class SQLiteDatabase:
         self.conn = sqlite3.connect(self.file_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
 
-    def add_iin(self, iin: str, status: int) -> None:
+    def add_iin(self, iin: str, status: int, is_priority: int = 0) -> None:
         self.cursor.execute(
             """
-            INSERT INTO iins (iin, status)
-            VALUES (?, ?)
-            """, (iin, status)
+            INSERT INTO iins (iin, status, is_priority)
+            VALUES (?, ?, ?)
+            """, (iin, status, is_priority)
         )
 
         self.conn.commit()
+
+    # def select_iin(self) -> tuple:
+    #     self.cursor.execute(
+    #         """
+    #         SELECT id, iin from iins
+    #         where status != 1
+    #         order by is_priority desc limit 1;
+    #         """
+    #     )
+    #
+    #     return self.cursor.fetchone()
 
     def select_iin(self) -> tuple:
         self.cursor.execute(
             """
             SELECT id, iin from iins 
-            where status != 1 
-            order by id asc limit 1;
+            where is_priority = 1
             """
         )
 
@@ -41,6 +51,16 @@ class SQLiteDatabase:
         )
 
         self.conn.commit()
+
+    def update_is_priority(self, iin: str, is_priority: int) -> None:
+        self.cursor.execute(
+            """
+            UPDATE iins
+            SET is_priority = ?
+            WHERE iin = ?
+            """,
+            (is_priority, iin)
+        )
 
     def update_iin_status_by_iin(self, iin: str, status: int) -> None:
         self.cursor.execute(

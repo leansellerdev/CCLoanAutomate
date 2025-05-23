@@ -21,7 +21,7 @@ db = SQLiteDatabase("db.sqlite3")
 def main():
 
     debt = Debt()
-    cc = CCLoanWeb(debt, headless=False)
+    cc = CCLoanWeb(debt, headless=True)
 
     counter = 40
 
@@ -84,14 +84,14 @@ def main():
     else:
         cc.driver.quit()
 
-trigger = CronTrigger(hour=9, minute=50 ,start_date=datetime.now() + timedelta(seconds=5))
+trigger = CronTrigger(hour=0, minute=0, start_date=datetime.now() + timedelta(seconds=5))
 scheduler = BlockingScheduler()
 
 
 if __name__ == '__main__':
     try:
-        main()
-        # scheduler.add_job(func=main, id='main', trigger=trigger)
-        # scheduler.start()
+        # main()
+        scheduler.add_job(func=main, id='main', trigger=trigger)
+        scheduler.start()
     except (KeyboardInterrupt, SystemExit) as error:
         logger.error(error)

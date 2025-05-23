@@ -35,6 +35,7 @@ class SQLiteDatabase:
             """
             SELECT id, iin from iins 
             where is_priority = 1
+            and status = 0
             """
         )
 

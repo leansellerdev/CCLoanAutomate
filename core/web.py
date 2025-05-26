@@ -93,7 +93,11 @@ class CCLoanWeb:
         time.sleep(5)
 
         credit = self.driver.find_element(By.XPATH, self.CREDITS_TBODY_XPATH).find_element(By.TAG_NAME, "tr")
-        credit_status = credit.find_elements(By.TAG_NAME, "td")[11].text
+        try:
+            credit_status = credit.find_elements(By.TAG_NAME, "td")[11].text
+        except IndexError:
+            return
+
         if credit_status != 'Отмена исп. листа/надписи':
             return
 

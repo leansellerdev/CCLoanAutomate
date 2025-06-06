@@ -47,10 +47,10 @@ def main():
                 continue
 
             logger.info("Берем ссылки на документы")
-            urls = cc.parse_credit_urls(credit_url)
-
-            logger.info("Собираем информацию по кредиту")
             try:
+                urls = cc.parse_credit_urls(credit_url)
+
+                logger.info("Собираем информацию по кредиту")
                 cc.parse_credit_info()
             except (IndexError, AttributeError):
                 db.update_iin_status(id=iin_id, status=1)

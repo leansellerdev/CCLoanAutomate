@@ -13,8 +13,10 @@ from core.files import fill_statement
 from core.utils.utils import delete_files, move_files
 from core.telegram import send_logs
 from core.database import SQLiteDatabase
+from settings import LOG_FILE_PATH
 
 
+logger.add(LOG_FILE_PATH, encoding='utf-8')
 db = SQLiteDatabase("db.sqlite3")
 
 

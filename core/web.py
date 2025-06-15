@@ -22,9 +22,9 @@ class CCLoanWeb:
 
     USERNAME_XPATH = '//*[@id="UserLoginForm_username"]'
     PASSWORD_XPATH = '//*[@id="UserLoginForm_password"]'
-    ENTER_TO_XPATH = '//*[@id="login-form"]/div[4]/input'
+    ENTER_TO_XPATH = '//input[contains(@value, "войти")]'
 
-    CREDITS_XPATH = '//*[@id="nav"]/li[3]/a'
+    CREDITS_XPATH = '//a[contains(@href, "Credit/index")]'
     IIN_FIELD_NAME = '//*[@id="credit-grid"]/table/thead/tr[2]/td[18]/input'
 
     CREDITS_TBODY_XPATH = '//*[@id="credit-grid"]/table/tbody'
@@ -74,6 +74,7 @@ class CCLoanWeb:
         self.driver.find_element(By.XPATH, self.PASSWORD_XPATH).send_keys(self.password)
 
         self.driver.find_element(By.XPATH, self.ENTER_TO_XPATH).click()
+        time.sleep(2)
 
     def main_page(self) -> None:
         self.driver.get(self.main_page_url)

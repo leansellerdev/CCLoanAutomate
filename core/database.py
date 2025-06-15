@@ -63,6 +63,8 @@ class SQLiteDatabase:
             (is_priority, iin)
         )
 
+        self.conn.commit()
+
     def update_iin_status_by_iin(self, iin: str, status: int) -> None:
         self.cursor.execute(
             """

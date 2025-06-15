@@ -23,7 +23,7 @@ db = SQLiteDatabase("db.sqlite3")
 def main():
 
     debt = Debt()
-    cc = CCLoanWeb(debt, headless=True)
+    cc = CCLoanWeb(debt, headless=False)
 
     counter = 40
 
